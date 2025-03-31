@@ -12,7 +12,9 @@ void onCommandWritten(uint16_t conn_hdl, BLECharacteristic* characteristic, uint
 
   
 BLECustam::BLECustam(void) :
-  BLEService(0xff01), _characteristic_input(0xff02), _characteristic_output(0xff03)
+  BLEService("0000ff01-0000-1000-8000-00805f9b34fb"),
+  _characteristic_input("0000ff02-0000-1000-8000-00805f9b34fb", BLERead | BLENotify, 32, false),
+  _characteristic_output("0000ff03-0000-1000-8000-00805f9b34fb", BLEWrite, 32, false)
 {
 
 }
@@ -24,10 +26,10 @@ err_t BLECustam::begin(void)
   VERIFY_STATUS( BLEService::begin() );
 
   // ブラウザからデータ受け取る用のcharacteristic
-  _characteristic_output.setProperties(CHR_PROPS_READ | CHR_PROPS_WRITE | CHR_PROPS_WRITE_WO_RESP | CHR_PROPS_NOTIFY);
-  _characteristic_output.setPermission(SECMODE_OPEN, SECMODE_OPEN);
+  // _characteristic_output.setProperties(CHR_PROPS_READ | CHR_PROPS_WRITE | CHR_PROPS_WRITE_WO_RESP | CHR_PROPS_NOTIFY);
+  // _characteristic_output.setPermission(SECMODE_OPEN, SECMODE_OPEN);
   // Input report len is configured, else variable len up to 255
-  _characteristic_output.setMaxLen(32);
+  // _characteristic_output.setMaxLen(32);
   // _characteristic_output.setFixedLen(8 );
   // _characteristic_output.setWriteCallback(BLEUart::bleuart_rxd_cb, true);
   _characteristic_output.setWriteCallback(onCommandWritten); // データを受け取った時のイベント登録
@@ -35,10 +37,10 @@ err_t BLECustam::begin(void)
 
 
   // XIAOからブラウザにデータを送る用のcharacteristic
-  _characteristic_input.setProperties(CHR_PROPS_READ | CHR_PROPS_WRITE | CHR_PROPS_WRITE_WO_RESP | CHR_PROPS_NOTIFY);
-  _characteristic_input.setPermission(SECMODE_OPEN, SECMODE_OPEN);
+  // _characteristic_input.setProperties(CHR_PROPS_READ | CHR_PROPS_WRITE | CHR_PROPS_WRITE_WO_RESP | CHR_PROPS_NOTIFY);
+  // _characteristic_input.setPermission(SECMODE_OPEN, SECMODE_OPEN);
   // _characteristic_input.setFixedLen(8);
-  _characteristic_input.setMaxLen(32);
+  // _characteristic_input.setMaxLen(32);
   VERIFY_STATUS( _characteristic_input.begin() );
 
   return ERROR_NONE;

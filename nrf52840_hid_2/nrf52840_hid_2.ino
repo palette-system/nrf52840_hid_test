@@ -12,11 +12,10 @@
  any redistribution
 *********************************************************************/
 #include <bluefruit.h>
-#include "src/lib/AZBLEHidAdafruit.h"
 #include "src/lib/CustamService.h"
 
 BLEDis bledis;
-AZBLEHidAdafruit blehid;
+BLEHidAdafruit blehid;
 BLECustam blecus;
 
 
@@ -113,10 +112,10 @@ void loop()
 {
   send_index++;
   if (send_index > 15) send_index = 0;
-    // blehid.keyPress(0x41);
-    // delay(50);
-    // blehid.keyRelease();
-    // delay(30000);
+    blehid.keyPress(0x41);
+    delay(50);
+    blehid.keyRelease();
+    delay(10000);
     blecus.notify(send_index);
     // blehid.sendTest();
     delay(1000);
