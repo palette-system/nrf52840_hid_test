@@ -13,12 +13,15 @@
 *********************************************************************/
 #include <bluefruit.h>
 #include "src/lib/AZBLEHidAdafruit.h"
-
+#include "src/lib/CustamService.h"
 
 BLEDis bledis;
 AZBLEHidAdafruit blehid;
+BLECustam blecus;
+
 
 bool hasKeyPressed = false;
+int send_index = 0;
 
 void setup() 
 {
@@ -31,7 +34,7 @@ void setup()
 
   Bluefruit.begin();
   Bluefruit.setTxPower(4);    // Check bluefruit.h for supported values
-  Bluefruit.setName("TEST_BLE");
+  Bluefruit.setName("XIAO_HID");
 
   // Configure and Start Device Information Service
   bledis.setManufacturer("xiao_nrf");
@@ -65,6 +68,8 @@ void setup()
   // Set callback for set LED from central
   blehid.setKeyboardLedCallback(set_keyboard_led);
 
+  blecus.begin();
+
   /* Set connection interval (min, max) to your perferred value.
    * Note: It is already set by BLEHidAdafruit::begin() to 11.25ms - 15ms
    * min = 9*1.25=11.25 ms, max = 12*1.25= 15 ms 
@@ -84,6 +89,7 @@ void startAdv(void)
   
   // Include BLE HID service
   Bluefruit.Advertising.addService(blehid);
+  Bluefruit.Advertising.addService(blecus);
 
   // There is enough room for the dev name in the advertising packet
   Bluefruit.Advertising.addName();
@@ -105,12 +111,15 @@ void startAdv(void)
 
 void loop() 
 {
+  send_index++;
+  if (send_index > 15) send_index = 0;
     // blehid.keyPress(0x41);
-    delay(50);
+    // delay(50);
     // blehid.keyRelease();
-    delay(30000);
-    blehid.sendTest();
-    delay(30000);
+    // delay(30000);
+    blecus.notify(send_index);
+    // blehid.sendTest();
+    delay(1000);
 }
 
 /**

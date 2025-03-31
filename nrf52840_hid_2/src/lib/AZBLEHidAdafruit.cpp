@@ -197,6 +197,11 @@ AZBLEHidAdafruit::AZBLEHidAdafruit(void)
 
 err_t AZBLEHidAdafruit::begin_my(void)
 {
+  int i;
+  for (i=0; i<32; i++) {
+      aztool_data[i] = 50 + i;
+  }
+
   VERIFY ( (_report_map != NULL) && _report_map_len, NRF_ERROR_INVALID_PARAM);
 
   // Invoke base class begin()
