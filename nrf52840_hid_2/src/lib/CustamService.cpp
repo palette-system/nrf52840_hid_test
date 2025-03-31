@@ -26,21 +26,10 @@ err_t BLECustam::begin(void)
   VERIFY_STATUS( BLEService::begin() );
 
   // ブラウザからデータ受け取る用のcharacteristic
-  // _characteristic_output.setProperties(CHR_PROPS_READ | CHR_PROPS_WRITE | CHR_PROPS_WRITE_WO_RESP | CHR_PROPS_NOTIFY);
-  // _characteristic_output.setPermission(SECMODE_OPEN, SECMODE_OPEN);
-  // Input report len is configured, else variable len up to 255
-  // _characteristic_output.setMaxLen(32);
-  // _characteristic_output.setFixedLen(8 );
-  // _characteristic_output.setWriteCallback(BLEUart::bleuart_rxd_cb, true);
   _characteristic_output.setWriteCallback(onCommandWritten); // データを受け取った時のイベント登録
   VERIFY_STATUS( _characteristic_output.begin() );
 
-
   // XIAOからブラウザにデータを送る用のcharacteristic
-  // _characteristic_input.setProperties(CHR_PROPS_READ | CHR_PROPS_WRITE | CHR_PROPS_WRITE_WO_RESP | CHR_PROPS_NOTIFY);
-  // _characteristic_input.setPermission(SECMODE_OPEN, SECMODE_OPEN);
-  // _characteristic_input.setFixedLen(8);
-  // _characteristic_input.setMaxLen(32);
   VERIFY_STATUS( _characteristic_input.begin() );
 
   return ERROR_NONE;
