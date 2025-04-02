@@ -12,11 +12,7 @@
  any redistribution
 *********************************************************************/
 #include <bluefruit.h>
-#include "src/lib/az_common.h"
 #include "src/lib/CustamService.h"
-
-// 共通クラス
-AzCommon common_cls = AzCommon();
 
 BLEDis bledis;
 BLEHidAdafruit blehid;

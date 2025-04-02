@@ -6,14 +6,12 @@
 #include "BLECharacteristic.h"
 #include "BLEService.h"
 
-
-#include "ble_callbacks.h"
-
-extern BLECharacteristic *_characteristic_input;
-extern BLECharacteristic *_characteristic_output;
-
 class BLECustam : public BLEService
 {
+  protected:
+  BLECharacteristic _characteristic_input;
+  BLECharacteristic _characteristic_output;
+
   public:
     BLECustam(void);
 
@@ -23,7 +21,6 @@ class BLECustam : public BLEService
 
     bool notify(uint8_t level);
     bool notify(uint16_t conn_hdl, uint8_t level);
-    static void onCommandWritten(uint16_t conn_hdl, BLECharacteristic* characteristic, uint8_t* data, uint16_t data_length);
 };
 
 
