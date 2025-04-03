@@ -321,7 +321,7 @@ void HidrawCallbackExec(int data_length) {
 
         }
 		case id_get_file_list: {
-			// ファイルリストの取得
+			// 0x38 ファイルリストの取得
             File dirp = InternalFS.open("/", FILE_O_READ);
 			File filep = dirp.openNextFile();
 			String res = "{\"list\":[";
@@ -338,9 +338,6 @@ void HidrawCallbackExec(int data_length) {
 			// ファイルリストの結果を送信用バッファに入れる
 			save_file_data = (uint8_t *)malloc(m + 1);
 			res.toCharArray((char *)save_file_data, m + 1);
-			// ファイルリストの結果を送信用バッファに入れる
-			save_file_data = (uint8_t *)malloc(m + 1);
-			res.toCharArray((char *)save_file_data, m + 1);
 			// 結果を返すコマンドを送信
 			send_buf[0] = id_get_file_list;
 			send_buf[1] = ((save_file_length >> 24) & 0xff);
@@ -352,7 +349,7 @@ void HidrawCallbackExec(int data_length) {
 			return;
 		}
 		case id_get_disk_info: {
-			// SPIFFSの容量を返す
+			// 0x39 SPIFFSの容量を返す
 			send_buf[0] = id_get_disk_info; // 結果の返すコマンド
 			// spiffs の容量
 			m = 0;
@@ -371,8 +368,10 @@ void HidrawCallbackExec(int data_length) {
 			return;
 		}
 		case id_restart: {
-			// M5StackCore2 の再起動
+			// 0x3a の再起動
 			aztool_mode_flag = 3; // キーボードリスタート要求
+			send_buf[0] = id_restart; // 結果の返すコマンド
+			for (i=1; i<32; i++) send_buf[i] = 0x00;
 			return;
 
 		}

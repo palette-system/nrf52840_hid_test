@@ -255,7 +255,7 @@ void AzCommon::common_start() {
 }
 
 // ESP32 再起動
-void AzCommon::esp_restart() {
+void AzCommon::restart() {
     NVIC_SystemReset();
 }
 
@@ -301,7 +301,7 @@ void AzCommon::load_setting_json() {
         // ファイルが無い場合はデフォルトファイル作り直して再起動
         create_setting_json();
         delay(1000);
-        esp_restart(); // 再起動
+        restart(); // 再起動
         return;
     }
     // ファイル読み込み
@@ -316,7 +316,7 @@ void AzCommon::load_setting_json() {
     if (err) {
         create_setting_json();
         delay(1000);
-        esp_restart();
+        restart();
         return;
     }
     // オブジェクトを保持
@@ -326,7 +326,7 @@ void AzCommon::load_setting_json() {
     if (!setting_obj["keyboard_type"].is<int>()) {
         create_setting_json();
         delay(1000);
-        esp_restart();
+        restart();
         return;
     }
 

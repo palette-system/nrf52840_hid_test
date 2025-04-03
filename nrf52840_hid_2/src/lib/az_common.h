@@ -243,7 +243,7 @@ class AzCommon
     public:
         AzCommon();   // コンストラクタ
         void common_start(); // 共通処理の初期処理(setup時に呼ばれる)
-        void esp_restart(); // ESP32再起動
+        void restart(); // ESP32再起動
         int split(String data, char delimiter, String *dst); // 区切り文字で分割する
         bool create_setting_json(); // デフォルトの設定json作成
         void load_setting_json(); // jsonデータロード

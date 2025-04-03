@@ -119,8 +119,8 @@ void loop()
     blehid.keyPress(0x41);
     delay(50);
     blehid.keyRelease();
-    delay(10000);
-    blecus.notify(send_index);
+    delay(100000);
+    // blecus.notify(send_index);
     // blehid.sendTest();
     delay(1000);
 }

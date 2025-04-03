@@ -63,6 +63,7 @@ void BLECustam::onCommandWritten(uint16_t conn_hdl, BLECharacteristic* character
 		HidrawCallbackExec(data_length);
 		// 返信データ送信
 		if (send_buf[0]) {
+            // ble_gatt.h の BLE_GATT_ATT_MTU_DEFAULT がデフォルト 23 を 35 にしないと 送信する時 20 で通知が行ってしまう
             _characteristic_input->notify(send_buf, 32);
 		}
 	}
@@ -72,13 +73,13 @@ void BLECustam::onCommandWritten(uint16_t conn_hdl, BLECharacteristic* character
 BLECustam::BLECustam(void) :
   BLEService("0000ff01-0000-1000-8000-00805f9b34fb")
 {
-    _characteristic_input = new BLECharacteristic("0000ff02-0000-1000-8000-00805f9b34fb", BLERead | BLENotify, 32, false); // UUID, パーミッション, データサイズ, データサイズ固定かどうか
-    _characteristic_output = new BLECharacteristic("0000ff03-0000-1000-8000-00805f9b34fb", BLEWrite, 32, false); // UUID, パーミッション, データサイズ, データサイズ固定かどうか
   
 }
 
 err_t BLECustam::begin(void)
 {
+    _characteristic_input = new BLECharacteristic("0000ff02-0000-1000-8000-00805f9b34fb", BLERead | BLENotify, 32, true); // UUID, パーミッション, データサイズ, データサイズ固定かどうか
+    _characteristic_output = new BLECharacteristic("0000ff03-0000-1000-8000-00805f9b34fb", BLEWrite, 32, true); // UUID, パーミッション, データサイズ, データサイズ固定かどうか
     write_index = 0;
   // Invoke base class begin()
   VERIFY_STATUS( BLEService::begin() );
