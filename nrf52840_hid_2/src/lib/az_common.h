@@ -250,6 +250,9 @@ class AzCommon
         void clear_keymap(); // キーマップ用に確保しているメモリを解放
         void get_keymap(JsonObject setting_obj); // JSONデータからキーマップの情報を読み込む
         void get_keymap_one(JsonObject json_obj, setting_key_press *press_obj, uint16_t lnum, uint16_t knum); // JSONデータからキーマップの情報を読み込む(1キー分)
+        int read_file(char *file_path, uint8_t *read_data); // ファイルからデータを読み出す
+        int write_file(char *file_path, uint8_t *write_data, int data_len); // ファイルにデータを保存する
+        int remove_file(char *file_path); // ファイルを削除する
         int i2c_setup(int p, i2c_option *opt, short map_set); // IOエキスパンダの初期化(戻り値：増えるキーの数)
         void pin_setup(); // キーの入力ピンの初期化
         bool layers_exists(int layer_no); // レイヤーが存在するか確認
@@ -287,7 +290,6 @@ extern uint32_t hid_state_change_time; // 最後にステータスを変更し�
 extern uint16_t hid_interval_normal; // 通常時のBLEインターバル
 extern uint16_t hid_interval_saving; // 省電力モード時のBLEインターバル
 extern int hid_saving_time; // 省電力モードに入るまでの時間(ミリ秒)
-
 
 // 電源ピン番号
 extern int power_pin;

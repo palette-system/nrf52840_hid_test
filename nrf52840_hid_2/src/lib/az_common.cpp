@@ -16,7 +16,6 @@ int8_t *key_matrix;
 uint8_t led_num_length;
 uint8_t key_matrix_length;
 
-
 // hid
 uint16_t hid_vid;
 uint16_t hid_pid;
@@ -216,6 +215,8 @@ AzCommon::AzCommon() {
 void AzCommon::common_start() {
     // 乱数初期化
     randomSeed(millis());
+    // ファイルシステム初期化
+    InternalFS.begin();
     // 押している最中のキーデータ初期化
     int i;
     for (i=0; i<PRESS_KEY_MAX; i++) {
@@ -255,7 +256,7 @@ void AzCommon::common_start() {
 
 // ESP32 再起動
 void AzCommon::esp_restart() {
-    // ESP.restart();
+    NVIC_SystemReset();
 }
 
 
@@ -295,8 +296,23 @@ void AzCommon::load_setting_json() {
     JsonDocument setting_doc;
     JsonObject setting_obj;
 
+    // ファイル存在確認
+    if(!InternalFS.exists(SETTING_JSON_PATH)){
+        // ファイルが無い場合はデフォルトファイル作り直して再起動
+        create_setting_json();
+        delay(1000);
+        esp_restart(); // 再起動
+        return;
+    }
+    // ファイル読み込み
+    File fp = InternalFS.open(SETTING_JSON_PATH, FILE_O_READ);
+    uint32_t json_len = fp.size();
+    uint8_t json_data[json_len];
+    fp.read(json_data, sizeof(json_len));
+    fp.close();
+
     // 読み込み＆パース
-    DeserializationError err = deserializeJson(setting_doc, setting_json_default_bin);
+    DeserializationError err = deserializeJson(setting_doc, json_data);
     if (err) {
         create_setting_json();
         delay(1000);
@@ -948,23 +964,50 @@ void AzCommon::get_keymap_one(JsonObject json_obj, setting_key_press *press_obj,
 }
 
 
+// ファイルを開いてテキストをロードする
+int AzCommon::read_file(char *file_path, uint8_t *read_data) {
+    // ファイルが無ければエラー
+    if (!InternalFS.exists(file_path)) {
+        return 0;
+    }
+    // ファイルオープン
+    File fp = InternalFS.open(file_path, FILE_O_READ);
+    uint32_t data_len = fp.size();
+    // 読み込み
+    int r = fp.read(read_data, data_len);
+    fp.close();
+    return r;
+}
+
+// テキストをファイルに書き込む
+int AzCommon::write_file(char *file_path, uint8_t *write_data, int data_len) {
+    // 書込みモードでファイルオープン
+    File fp = InternalFS.open(file_path, FILE_O_WRITE);
+    // 書込み
+    int r = fp.write(write_data, data_len);
+    fp.close();
+    return r;
+}
+
+// ファイルを削除
+int AzCommon::remove_file(char *file_path) {
+    if (InternalFS.remove(file_path)) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
 
 
 // デフォルトのsetting.jsonを生成する
 bool AzCommon::create_setting_json() {
-    /*
     // 書込みモードでファイルオープン
-    File json_file = SPIFFS.open(SETTING_JSON_PATH, FILE_WRITE);
-    if(!json_file){
+    File fp = InternalFS.open(SETTING_JSON_PATH, FILE_O_WRITE);
+    if (!fp.write(setting_json_default_bin, sizeof(setting_json_default_bin))) {
+        fp.close();
         return false;
     }
-    // 書込み
-    if(!json_file.print(setting_json_default_bin)){
-        json_file.close();
-        return false;
-    }
-    json_file.close();
-    */
+    fp.close();
    return true;
 }
 

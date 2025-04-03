@@ -8,6 +8,9 @@
 /** HID RAW コールバック用 クラス */
 /* ====================================================================================================================== */
 
+// ファイル送受信用のファイルポインタ
+File *open_file;
+
 // ステップ分受信したか確認
 int check_step() {
 	int i, r = 0;
@@ -114,14 +117,20 @@ void HidrawCallbackExec(int data_length) {
 			}
 			target_file_path[i - 1] = 0x00;
 
-            // ファイル存在しない
-            send_buf[0] = id_get_file_start;
-            for (i=1; i<32; i++) send_buf[i] = 0x00;
-            return;
-
-            /* ファイル存在する
-            save_file_length = open_file.size();
+		    // ファイルが無ければ0を返す
+			if (!InternalFS.exists(target_file_path)) {
+				send_buf[0] = id_get_file_start;
+				for (i=1; i<32; i++) send_buf[i] = 0x00;
+				return;
+			}
+            File fp = InternalFS.open(target_file_path, FILE_O_READ);
+			open_file = &fp;
+			save_file_length = open_file->size();
+			// Serial.printf("ps_malloc load: %s %d %d\n", target_file_path, save_file_length, heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
 			save_file_data = (uint8_t *)malloc(save_file_length);
+			open_file->read(save_file_data, save_file_length);
+			open_file->close();
+            free(open_file);
 			send_buf[0] = id_get_file_start;
 			send_buf[1] = 0x01; // ファイルは存在する
 			send_buf[2] = ((save_file_length >> 24) & 0xff);
@@ -130,7 +139,6 @@ void HidrawCallbackExec(int data_length) {
 			send_buf[5] = (save_file_length & 0xff);
 			for (i=6; i<32; i++) send_buf[i] = 0x00;
 			return;
-            */
 		    
 		}
 		case id_get_file_data: { // 0x31 ファイルデータ要求
@@ -230,43 +238,106 @@ void HidrawCallbackExec(int data_length) {
 		}
 		case id_save_file_complate: {
 			// 保存完了
-			// open_file = SPIFFS.open(target_file_path, "w");
-			// open_file.write(save_file_data, save_file_length);
-			// open_file.close(); // ファイルクローズ
-			// Serial.printf("free save: %d %d\n", save_file_length, heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
+            common_cls.write_file(target_file_path, save_file_data, save_file_length);
 			free(save_file_data);
 			send_buf[0] = id_save_file_complate; // 保存完了
 			send_buf[1] = 0x01; // データ保存完了
 			for (i=2; i<32; i++) send_buf[i] = 0x00;
-			// this->sendRawData(send_buf, 32);
 			return;
 		}
 		case id_remove_file: { // 0x35 ファイル削除要求
+			// ファイル名を取得
+			i = 1;
+			while (remap_buf[i]) {
+				target_file_path[i - 1] = remap_buf[i];
+				i++;
+				if (i >= 32) break;
+			}
+			target_file_path[i - 1] = 0x00;
 			send_buf[0] = id_remove_file;
-            send_buf[1] = 0x00; // 成功は0
+		    // ファイルがあればファイルを消す
+			if (InternalFS.exists(target_file_path)) {
+				if (!InternalFS.remove(target_file_path)) {
+					// 削除失敗したら2にする
+					send_buf[1] = 0x02;
+				} else {
+					// 成功は0
+					send_buf[1] = 0x00;
+				}
+			} else {
+				// ファイルが無ければ1
+				send_buf[1] = 0x01;
+			}
 			// 完了を返す
 			for (i=2; i<32; i++) send_buf[i] = 0x00;
 			return;
 
 		}
 		case id_remove_all: { // 全てのファイルを削除する
-			// 結果を返すコマンドを送信
+			keyboard_status = 2; // ステータスをAZTOOLの処理中にする
+            InternalFS.format();
+			keyboard_status = 1; // ステータスを元に戻す
+
+            // 結果を返すコマンドを送信
 			send_buf[0] = id_remove_all;
 			for (i=1; i<32; i++) send_buf[i] = 0x00;
 			return;
 
 		}
 		case id_move_file: { // 0x36 ファイル名変更
+			// ファイル名を取得
+			i = 1;
+			j = 0;
+			while (remap_buf[i]) {
+				target_file_path[j] = remap_buf[i];
+				i++;
+				j++;
+				if (i >= 32) break;
+			}
+			target_file_path[j] = 0x00;
+			i++;
+			// 変更後ファイル名を取得
+			j = 0;
+			while (remap_buf[i]) {
+				second_file_path[j] = remap_buf[i];
+				i++;
+				j++;
+				if (i >= 32) break;
+			}
+			second_file_path[j] = 0x00;
 		    send_buf[0] = id_move_file;
-            send_buf[1] = 0x00; // ファイル名変更 成功
+			if (!InternalFS.exists(target_file_path)) {
+				// 該当ファイルが無ければ1を返す
+				send_buf[1] = 0x01;
+			} else if (InternalFS.rename(target_file_path, second_file_path)) {
+				// ファイル名変更 成功
+				send_buf[1] = 0x00;
+			} else {
+				// ファイル名変更 失敗
+				send_buf[1] = 0x02;
+			}
 			for (i=2; i<32; i++) send_buf[i] = 0x00;
 			return;
-		}
+
+        }
 		case id_get_file_list: {
 			// ファイルリストの取得
-			String res = "{\"list\":[{\"name\":\"/setting.json\",\"size\":1024}]}";
+            File dirp = InternalFS.open("/", FILE_O_READ);
+			File filep = dirp.openNextFile();
+			String res = "{\"list\":[";
+			i = 0;
+			while(filep){
+				if (i) res += ",";
+				res += "{\"name\":\"" +String(filep.name()) + "\",\"size\":" + String(filep.size()) + "}";
+				filep = dirp.openNextFile();
+				i++;
+			}
+			res += "]}";
 			save_file_length = res.length();
 			m = save_file_length;
+			// ファイルリストの結果を送信用バッファに入れる
+			save_file_data = (uint8_t *)malloc(m + 1);
+			res.toCharArray((char *)save_file_data, m + 1);
 			// ファイルリストの結果を送信用バッファに入れる
 			save_file_data = (uint8_t *)malloc(m + 1);
 			res.toCharArray((char *)save_file_data, m + 1);
@@ -284,13 +355,13 @@ void HidrawCallbackExec(int data_length) {
 			// SPIFFSの容量を返す
 			send_buf[0] = id_get_disk_info; // 結果の返すコマンド
 			// spiffs の容量
-			m = 1024;
+			m = 0;
 			send_buf[1] = ((m >> 24) & 0xff);
 			send_buf[2] = ((m >> 16) & 0xff);
 			send_buf[3] = ((m >> 8) & 0xff);
 			send_buf[4] = (m & 0xff);
 			// spiffs の使用容量
-			m = 1024;
+			m = 0;
 			send_buf[5] = ((m >> 24) & 0xff);
 			send_buf[6] = ((m >> 16) & 0xff);
 			send_buf[7] = ((m >> 8) & 0xff);
