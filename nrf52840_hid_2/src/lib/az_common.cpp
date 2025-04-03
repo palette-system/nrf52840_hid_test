@@ -66,9 +66,6 @@ Wirelib wirelib_cls = Wirelib();
 SoftwareSerial *irSerial;
 
 
-// http用のバッファ
-char webhook_buf[WEBFOOK_BUF_SIZE];
-
 // 入力キーの数
 int key_input_length;
 
@@ -295,7 +292,6 @@ int split_num(char *c) {
 // JSONデータを読み込む
 void AzCommon::load_setting_json() {
     // セッティングJSONを保持する領域
-    // DynamicJsonDocument setting_doc(SETTING_JSON_BUF_SIZE);
     JsonDocument setting_doc;
     JsonObject setting_obj;
 

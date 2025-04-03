@@ -10,6 +10,10 @@
 #include <Adafruit_NeoPixel.h>
 #include <Adafruit_MCP23X17.h>
 
+#include <Adafruit_LittleFS.h>
+#include <InternalFileSystem.h>
+
+using namespace Adafruit_LittleFS_Namespace;
 
 // キーボード
 #include "setting_json_default.h"
@@ -24,14 +28,8 @@
 // マウス移動ボタン同時押し許容数
 #define PRESS_MOUSE_MAX 4
 
-// WEBフック用のバッファサイズ
-#define WEBFOOK_BUF_SIZE 512
-
 // JSONバッファにPSRAMを使うかのフラグ
 #define SETTING_JSON_BUF_PSRAM 0
-
-// 設定JSONのバッファサイズ
-#define SETTING_JSON_BUF_SIZE 5120
 
 // 暗記ボタンで暗記できる数
 #define ANKEY_DATA_MAX_LENGTH  32
@@ -367,10 +365,6 @@ extern Neopixel rgb_led_cls;
 // I2Cライブラリ用クラス
 extern Wirelib wirelib_cls;
 
-
-
-// http用のバッファ
-extern char webhook_buf[WEBFOOK_BUF_SIZE];
 
 // 入力キーの数
 extern int key_input_length;
