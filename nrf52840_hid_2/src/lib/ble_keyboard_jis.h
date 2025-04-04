@@ -1,7 +1,16 @@
 
 
 #include "ble_callbacks.h"
-#include "az_common.h"
+// #include "az_common.h"
+
+
+#include <bluefruit.h>
+#include "CustamService.h"
+
+// HID 
+extern BLEDis bledis;
+extern BLEHidAdafruit blehid;
+extern BLECustam blecus;
 
 
 // BLEキーボードクラス
@@ -17,6 +26,8 @@ class BleKeyboardJIS
     BleKeyboardJIS(void); // コンストラクタ
     void set_report_map(uint8_t * report_map, unsigned short report_size);
     void begin(std::string deviceName = "az_keyboard", std::string deviceManufacturer = "PaletteSystem");
+    void startAdv(void);
+    static void set_keyboard_led(uint16_t conn_handle, uint8_t led_bitmap);
     bool isConnected(void);
     unsigned short modifiers_press(unsigned short k);
     unsigned short modifiers_release(unsigned short k);

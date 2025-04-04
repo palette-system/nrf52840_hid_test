@@ -1,6 +1,8 @@
 #include "az_common.h"
 #include "cnc_table.h"
 
+#include <SoftwareSerial.h>
+
 // remap用 キー入力テスト中フラグ
 uint16_t  remap_input_test;
 
@@ -308,7 +310,7 @@ void AzCommon::load_setting_json() {
     File fp = InternalFS.open(SETTING_JSON_PATH, FILE_O_READ);
     uint32_t json_len = fp.size();
     uint8_t json_data[json_len];
-    fp.read(json_data, sizeof(json_len));
+    fp.read(json_data, json_len);
     fp.close();
 
     // 読み込み＆パース
@@ -323,7 +325,7 @@ void AzCommon::load_setting_json() {
     setting_obj = setting_doc.as<JsonObject>();
 
     // キーボードタイプは必須なので項目が無ければ設定ファイル作り直し(設定ファイル壊れた時用)
-    if (!setting_obj["keyboard_type"].is<int>()) {
+    if (!setting_obj["keyboard_type"].is<String>()) {
         create_setting_json();
         delay(1000);
         restart();
@@ -332,7 +334,7 @@ void AzCommon::load_setting_json() {
 
     // キーボードの名前を取得する
     String keynamestr;
-    if (setting_obj["keyboard_name"].is<int>()) {
+    if (setting_obj["keyboard_name"].is<String>()) {
         keynamestr = setting_obj["keyboard_name"].as<String>();
         keynamestr.toCharArray(keyboard_name_str, 31);
     } else {
@@ -349,13 +351,13 @@ void AzCommon::load_setting_json() {
 
     // HID 設定
     String hidstr;
-    if (setting_obj["vendorId"].is<int>()) {
+    if (setting_obj["vendorId"].is<String>()) {
         hidstr = setting_obj["vendorId"].as<String>();
         hid_vid = (uint16_t) strtol(&hidstr[2], NULL, 16);
     } else {
         hid_vid = BLE_HID_VID;
     }
-    if (setting_obj["productId"].is<int>()) {
+    if (setting_obj["productId"].is<String>()) {
         hidstr = setting_obj["productId"].as<String>();
         hid_pid = (uint16_t) strtol(&hidstr[2], NULL, 16);
     } else {
@@ -368,7 +370,7 @@ void AzCommon::load_setting_json() {
     // hold 設定読み込み
     hold_type = 0;
     hold_time = 45;
-    if (setting_obj["hold"].is<int>()) {
+    if (setting_obj["hold"].is<JsonObject>()) {
         if (setting_obj["hold"]["type"].is<int>()) {
             hold_type = setting_obj["hold"]["type"].as<signed int>();
         }
@@ -411,7 +413,7 @@ void AzCommon::load_setting_json() {
     }
 
     // 磁気スイッチ入力ピン情報取得
-    if (setting_obj["keyboard_pin"]["hall"].is<int>()) {
+    if (setting_obj["keyboard_pin"]["hall"].is<JsonObject>()) {
         hall_len = setting_obj["keyboard_pin"]["hall"].size();
         hall_list = new short[hall_len]; // ホールセンサーにつながっているピン
         input_key_analog = new uint8_t[hall_len]; // 現在のアナログ値
@@ -432,7 +434,7 @@ void AzCommon::load_setting_json() {
     }
 
     // IOエキスパンダピン
-    if (setting_obj["i2c_set"].is<int>() && setting_obj["i2c_set"].size() == 3) {
+    if (setting_obj["i2c_set"].is<JsonArray>() && setting_obj["i2c_set"].size() == 3) {
         ioxp_sda = setting_obj["i2c_set"][0].as<signed int>();
         ioxp_scl = setting_obj["i2c_set"][1].as<signed int>();
         ioxp_hz = setting_obj["i2c_set"][2].as<signed int>();
@@ -443,7 +445,7 @@ void AzCommon::load_setting_json() {
     }
 
     // シリアル通信(赤外線)ピン
-    if (setting_obj["seri_set"].is<int>() && setting_obj["seri_set"].size() == 4) {
+    if (setting_obj["seri_set"].is<JsonArray>() && setting_obj["seri_set"].size() == 4) {
         seri_tx = setting_obj["seri_set"][0].as<signed int>();
         seri_rx = setting_obj["seri_set"][1].as<signed int>();
         seri_hz = setting_obj["seri_set"][2].as<signed int>();
@@ -466,7 +468,7 @@ void AzCommon::load_setting_json() {
     i2c_pim447 i2cpim447_obj;
     i2c_azxp i2cazxp_obj;
     int opt_type;
-    if (setting_obj["i2c_option"].is<int>() && setting_obj["i2c_option"].size()) {
+    if (setting_obj["i2c_option"].is<JsonArray>() && setting_obj["i2c_option"].size()) {
         // 有効になっているオプションの数を数える
         k = setting_obj["i2c_option"].size();
         // Serial.printf("i2c_option size: %D\n", k);
@@ -498,7 +500,7 @@ void AzCommon::load_setting_json() {
             // マッピング情報の読み込み
             if (opt_type == 1 || opt_type == 2 || opt_type == 3 || opt_type == 4 || opt_type == 5 || opt_type == 7) { // 1 = IOエキスパンダ（MCP23017）/ 2 = Tiny202 ロータリーエンコーダ
                 // キーマッピング設定
-                if (setting_obj["i2c_option"][i]["map"].is<int>() &&
+                if (setting_obj["i2c_option"][i]["map"].is<JsonArray>() &&
                         setting_obj["i2c_option"][i]["map"].size() ) {
                     i2cmap_obj.map_len = setting_obj["i2c_option"][i]["map"].size();
                     i2cmap_obj.map = new short[i2cmap_obj.map_len];
@@ -520,14 +522,14 @@ void AzCommon::load_setting_json() {
             // オプション別のデータ読み込み
             if (opt_type == 1) { // 1 = IOエキスパンダ（MCP23017）
                 // 使用するIOエキスパンダの情報
-                if (setting_obj["i2c_option"][i]["ioxp"].is<int>() && setting_obj["i2c_option"][i]["ioxp"].size()) {
+                if (setting_obj["i2c_option"][i]["ioxp"].is<JsonArray>() && setting_obj["i2c_option"][i]["ioxp"].size()) {
                     i2cioxp_obj.ioxp_len = setting_obj["i2c_option"][i]["ioxp"].size();
                     i2cioxp_obj.ioxp = new ioxp_option[i2cioxp_obj.ioxp_len];
                     for (n=0; n<i2cioxp_obj.ioxp_len; n++) {
                         // IOエキスパンダのアドレス
                         i2cioxp_obj.ioxp[n].addr = setting_obj["i2c_option"][i]["ioxp"][n]["addr"];
                         // row に設定しているピン
-                        if (setting_obj["i2c_option"][i]["ioxp"][n]["row"].is<int>() &&
+                        if (setting_obj["i2c_option"][i]["ioxp"][n]["row"].is<JsonArray>() &&
                                 setting_obj["i2c_option"][i]["ioxp"][n]["row"].size() ) {
                             // row に設定されている配列を取得(0～7 以外を無視する)
                             i2cioxp_obj.ioxp[n].row_len = setting_obj["i2c_option"][i]["ioxp"][n]["row"].size();
@@ -551,7 +553,7 @@ void AzCommon::load_setting_json() {
                             i2cioxp_obj.ioxp[n].row_len = 0;
                         }
                         // col に設定しているピン
-                        if (setting_obj["i2c_option"][i]["ioxp"][n]["col"].is<int>() &&
+                        if (setting_obj["i2c_option"][i]["ioxp"][n]["col"].is<JsonArray>() &&
                                 setting_obj["i2c_option"][i]["ioxp"][n]["col"].size() ) {
                             i2cioxp_obj.ioxp[n].col_len = setting_obj["i2c_option"][i]["ioxp"][n]["col"].size();
                             i2cioxp_obj.ioxp[n].col = new uint8_t[i2cioxp_obj.ioxp[n].col_len];
@@ -562,7 +564,7 @@ void AzCommon::load_setting_json() {
                             i2cioxp_obj.ioxp[n].col_len = 0;
                         }
                         // direct に設定しているピン
-                        if (setting_obj["i2c_option"][i]["ioxp"][n]["direct"].is<int>() &&
+                        if (setting_obj["i2c_option"][i]["ioxp"][n]["direct"].is<JsonArray>() &&
                                 setting_obj["i2c_option"][i]["ioxp"][n]["direct"].size() ) {
                             i2cioxp_obj.ioxp[n].direct_len = setting_obj["i2c_option"][i]["ioxp"][n]["direct"].size();
                             i2cioxp_obj.ioxp[n].direct = new uint8_t[i2cioxp_obj.ioxp[n].direct_len];
@@ -583,7 +585,7 @@ void AzCommon::load_setting_json() {
             } else if (opt_type == 2) { // 2 = Tiny202 ロータリーエンコーダ
                 
                 // 使用するIOエキスパンダの情報
-                if (setting_obj["i2c_option"][i]["rotary"].is<int>() && setting_obj["i2c_option"][i]["rotary"].size()) {
+                if (setting_obj["i2c_option"][i]["rotary"].is<JsonArray>() && setting_obj["i2c_option"][i]["rotary"].size()) {
                     i2crotary_obj.rotary_len = setting_obj["i2c_option"][i]["rotary"].size();
                     i2crotary_obj.rotary = new uint8_t[i2crotary_obj.rotary_len];
                     for (n=0; n<i2crotary_obj.rotary_len; n++) {
@@ -658,7 +660,7 @@ void AzCommon::load_setting_json() {
     }
 
     // Nubkey オプション
-    if (setting_obj["nubkey"].is<int>() && setting_obj["nubkey"].size()) {
+    if (setting_obj["nubkey"].is<JsonArray>() && setting_obj["nubkey"].size()) {
         nubopt_len = setting_obj["nubkey"].size();
         nubopt = new nubkey_option[nubopt_len]; // Nubkeyの設定を保持する変数
         for (i=0; i<nubopt_len; i++) {
@@ -718,7 +720,7 @@ void AzCommon::load_setting_json() {
     hid_interval_normal = 28; // 通常時のBLEインターバル
     hid_interval_saving = 96; // 省電力モード時のBLEインターバル
     hid_saving_time = 5000; // 省電力モードに入るまでの時間(ミリ秒)
-    if (setting_obj["power_saving"].is<int>()) {
+    if (setting_obj["power_saving"].is<JsonObject>()) {
         if (setting_obj["power_saving"]["mode"].is<int>()) {
             hid_power_saving_mode = setting_obj["power_saving"]["mode"].as<signed int>();
         }
@@ -831,7 +833,7 @@ void AzCommon::get_keymap(JsonObject setting_obj) {
     layers = setting_obj["layers"].as<JsonObject>();
     setting_length = 0;
     for (it_l=layers.begin(); it_l!=layers.end(); ++it_l) {
-        if (!setting_obj["layers"][it_l->key().c_str()]["keys"].is<int>()) continue;
+        if (!setting_obj["layers"][it_l->key().c_str()]["keys"].is<JsonArray>()) continue;
         setting_length += setting_obj["layers"][it_l->key().c_str()]["keys"].size();
     }
     // Serial.printf("setting total %D\n", setting_length);
@@ -853,7 +855,7 @@ void AzCommon::get_keymap(JsonObject setting_obj) {
             press_json = setting_obj["layers"][lkey]["keys"][kkey]["press"].as<JsonObject>();
             this->get_keymap_one(press_json, &setting_press[i], lnum, knum);
             setting_press[i].sub_press_flag = false;
-            if (setting_obj["layers"][lkey]["keys"][kkey]["sub"].is<int>()) {
+            if (setting_obj["layers"][lkey]["keys"][kkey]["sub"].is<JsonObject>()) {
                 setting_press[i].sub_press_flag = true;
                 setting_press[i].sub_press = new setting_key_press;
                 press_json = setting_obj["layers"][lkey]["keys"][kkey]["sub"].as<JsonObject>();
@@ -1001,6 +1003,10 @@ int AzCommon::remove_file(char *file_path) {
 
 // デフォルトのsetting.jsonを生成する
 bool AzCommon::create_setting_json() {
+    // ファイルが存在していれば削除
+    if (InternalFS.exists(SETTING_JSON_PATH)) {
+        InternalFS.remove(SETTING_JSON_PATH);
+    }
     // 書込みモードでファイルオープン
     File fp = InternalFS.open(SETTING_JSON_PATH, FILE_O_WRITE);
     if (!fp.write(setting_json_default_bin, sizeof(setting_json_default_bin))) {

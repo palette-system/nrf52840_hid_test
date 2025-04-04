@@ -8,8 +8,6 @@
 /** HID RAW コールバック用 クラス */
 /* ====================================================================================================================== */
 
-// ファイル送受信用のファイルポインタ
-File *open_file;
 
 // ステップ分受信したか確認
 int check_step() {
@@ -124,13 +122,11 @@ void HidrawCallbackExec(int data_length) {
 				return;
 			}
             File fp = InternalFS.open(target_file_path, FILE_O_READ);
-			open_file = &fp;
-			save_file_length = open_file->size();
+			save_file_length = fp.size();
 			// Serial.printf("ps_malloc load: %s %d %d\n", target_file_path, save_file_length, heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
 			save_file_data = (uint8_t *)malloc(save_file_length);
-			open_file->read(save_file_data, save_file_length);
-			open_file->close();
-            free(open_file);
+			fp.read(save_file_data, save_file_length);
+			fp.close();
 			send_buf[0] = id_get_file_start;
 			send_buf[1] = 0x01; // ファイルは存在する
 			send_buf[2] = ((save_file_length >> 24) & 0xff);
