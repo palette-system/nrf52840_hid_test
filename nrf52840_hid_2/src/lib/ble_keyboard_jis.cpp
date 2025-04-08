@@ -8,7 +8,6 @@ BLEDis bledis;
 BLEHidAdafruit blehid;
 BLECustam blecus;
 
-
 // コンストラクタ
 BleKeyboardJIS::BleKeyboardJIS(void)
 {
@@ -22,14 +21,14 @@ void BleKeyboardJIS::set_report_map(uint8_t * report_map, unsigned short report_
 };
 
 // BLEキーボードとして処理開始
-void BleKeyboardJIS::begin(std::string deviceName, std::string deviceManufacturer)
+void BleKeyboardJIS::begin(char *deviceName)
 {
     Bluefruit.begin();
     Bluefruit.setTxPower(4);    // Check bluefruit.h for supported values
-    Bluefruit.setName("XIAO_HID");
+    Bluefruit.setName(deviceName);
   
     // Configure and Start Device Information Service
-    bledis.setManufacturer("xiao_nrf");
+    bledis.setManufacturer("palette_system");
     bledis.setModel("nrfA");
     uint8_t sig = 0x02;
     uint16_t hid_vid = 0xe502; 
@@ -136,44 +135,44 @@ bool BleKeyboardJIS::isConnected(void)
 unsigned short BleKeyboardJIS::modifiers_press(unsigned short k) {
   this->setConnInterval(0); // 消費電力モード解除
   if (k & JIS_SHIFT) { // shift
-    this->_keyReport.modifiers |= 0x02; // the left shift modifier
+    this->_keyReport.modifier |= 0x02; // the left shift modifier
     k &= 0xFF;
   }
-  if (k == 224) { k = 0; this->_keyReport.modifiers |= 0x01; } // LEFT Ctrl
-  if (k == 228) { k = 0; this->_keyReport.modifiers |= 0x10; } // RIGHT Ctrl
-  if (k == 225) { k = 0; this->_keyReport.modifiers |= 0x02; } // LEFT Shift
-  if (k == 229) { k = 0; this->_keyReport.modifiers |= 0x20; } // RIGHT Shift
-  if (k == 226) { k = 0; this->_keyReport.modifiers |= 0x04; } // LEFT Alt
-  if (k == 230) { k = 0; this->_keyReport.modifiers |= 0x40; } // RIGHT Alt
-  if (k == 227) { k = 0; this->_keyReport.modifiers |= 0x08; } // LEFT GUI
-  if (k == 231) { k = 0; this->_keyReport.modifiers |= 0x80; } // RIGHT GUI
+  if (k == 224) { k = 0; this->_keyReport.modifier |= 0x01; } // LEFT Ctrl
+  if (k == 228) { k = 0; this->_keyReport.modifier |= 0x10; } // RIGHT Ctrl
+  if (k == 225) { k = 0; this->_keyReport.modifier |= 0x02; } // LEFT Shift
+  if (k == 229) { k = 0; this->_keyReport.modifier |= 0x20; } // RIGHT Shift
+  if (k == 226) { k = 0; this->_keyReport.modifier |= 0x04; } // LEFT Alt
+  if (k == 230) { k = 0; this->_keyReport.modifier |= 0x40; } // RIGHT Alt
+  if (k == 227) { k = 0; this->_keyReport.modifier |= 0x08; } // LEFT GUI
+  if (k == 231) { k = 0; this->_keyReport.modifier |= 0x80; } // RIGHT GUI
   return k;
 };
 
 
 unsigned short BleKeyboardJIS::modifiers_release(unsigned short k) {
   if (k & JIS_SHIFT) { // shift
-    this->_keyReport.modifiers &= ~(0x02);  // the left shift modifier
+    this->_keyReport.modifier &= ~(0x02);  // the left shift modifier
     k &= 0xFF;
   }
-  if (k == 224) { k = 0; this->_keyReport.modifiers &= ~(0x01); } // LEFT Ctrl
-  if (k == 228) { k = 0; this->_keyReport.modifiers &= ~(0x10); } // RIGHT Ctrl
-  if (k == 225) { k = 0; this->_keyReport.modifiers &= ~(0x02); } // LEFT Shift
-  if (k == 229) { k = 0; this->_keyReport.modifiers &= ~(0x20); } // RIGHT Shift
-  if (k == 226) { k = 0; this->_keyReport.modifiers &= ~(0x04); } // LEFT Alt
-  if (k == 230) { k = 0; this->_keyReport.modifiers &= ~(0x40); } // RIGHT Alt
-  if (k == 227) { k = 0; this->_keyReport.modifiers &= ~(0x08); } // LEFT GUI
-  if (k == 231) { k = 0; this->_keyReport.modifiers &= ~(0x80); } // RIGHT GUI
+  if (k == 224) { k = 0; this->_keyReport.modifier &= ~(0x01); } // LEFT Ctrl
+  if (k == 228) { k = 0; this->_keyReport.modifier &= ~(0x10); } // RIGHT Ctrl
+  if (k == 225) { k = 0; this->_keyReport.modifier &= ~(0x02); } // LEFT Shift
+  if (k == 229) { k = 0; this->_keyReport.modifier &= ~(0x20); } // RIGHT Shift
+  if (k == 226) { k = 0; this->_keyReport.modifier &= ~(0x04); } // LEFT Alt
+  if (k == 230) { k = 0; this->_keyReport.modifier &= ~(0x40); } // RIGHT Alt
+  if (k == 227) { k = 0; this->_keyReport.modifier &= ~(0x08); } // LEFT GUI
+  if (k == 231) { k = 0; this->_keyReport.modifier &= ~(0x80); } // RIGHT GUI
   return k;
 };
 
 // Shiftを離す
 void BleKeyboardJIS::shift_release() {
   int i;
-  this->_keyReport.modifiers &= ~(0x22);
+  this->_keyReport.modifier &= ~(0x22);
   for (i=0; i<6; i++) {
-    if (this->_keyReport.keys[i] == 225 || this->_keyReport.keys[i] == 229) {
-      this->_keyReport.keys[i] = 0;
+    if (this->_keyReport.keycode[i] == 225 || this->_keyReport.keycode[i] == 229) {
+      this->_keyReport.keycode[i] = 0;
     }
   }
 }
@@ -253,13 +252,11 @@ unsigned short BleKeyboardJIS::modifiers_media_release(unsigned short k) {
   return 0;
 };
 
-void BleKeyboardJIS::sendReport(KeyReport* keys)
+void BleKeyboardJIS::sendReport(hid_keyboard_report_t* keys)
 {
-  if (this->isConnected())
-  {
+    blehid.keyboardReport(keys);
     // this->pInputCharacteristic->setValue((uint8_t*)keys, sizeof(KeyReport));
     // this->pInputCharacteristic->notify();
-  }
 };
 
 void BleKeyboardJIS::sendReport(MediaKeyReport* keys)
@@ -268,6 +265,9 @@ void BleKeyboardJIS::sendReport(MediaKeyReport* keys)
   {
     // this->pInputCharacteristic2->setValue((uint8_t*)keys, sizeof(MediaKeyReport));
     // this->pInputCharacteristic2->notify();
+    // uint16_t s;
+    // s = keys[1];
+    // blehid.consumerReport(keys[0]);
   }
 };
 
@@ -299,12 +299,15 @@ void BleKeyboardJIS::mouse_move(signed char x, signed char y, signed char wheel,
         if (x != 0 || y != 0 || wheel != 0 || hWheel != 0 || this->_MouseButtons != 0) {
             this->setConnInterval(0); // 消費電力モード解除
         }
+        /*
         uint8_t m[5];
         m[0] = this->_MouseButtons;
         m[1] = x;
         m[2] = y;
         m[3] = wheel;
         m[4] = hWheel;
+        */
+        blehid.mouseReport(this->_MouseButtons, x, y, wheel, hWheel);
         // this->pInputCharacteristic3->setValue(m, 5);
         // this->pInputCharacteristic3->notify();
     }
@@ -318,13 +321,13 @@ size_t BleKeyboardJIS::press_raw(unsigned short k)
   // メディアキー
   if (modifiers_media_press(k)) return 1;
   kk = this->modifiers_press(k);
-  if (this->_keyReport.keys[0] != kk && this->_keyReport.keys[1] != kk &&
-    this->_keyReport.keys[2] != kk && this->_keyReport.keys[3] != kk &&
-    this->_keyReport.keys[4] != kk && this->_keyReport.keys[5] != kk) {
+  if (this->_keyReport.keycode[0] != kk && this->_keyReport.keycode[1] != kk &&
+    this->_keyReport.keycode[2] != kk && this->_keyReport.keycode[3] != kk &&
+    this->_keyReport.keycode[4] != kk && this->_keyReport.keycode[5] != kk) {
 
     for (i=0; i<6; i++) {
-      if (this->_keyReport.keys[i] == 0x00) {
-        this->_keyReport.keys[i] = kk;
+      if (this->_keyReport.keycode[i] == 0x00) {
+        this->_keyReport.keycode[i] = kk;
         break;
       }
     }
@@ -345,14 +348,14 @@ size_t BleKeyboardJIS::press_set(uint8_t k)
   if (!kk) {
     return 0;
   }
-  this->_keyReport.modifiers = 0x00;
+  this->_keyReport.modifier = 0x00;
   kk = this->modifiers_press(kk);
-  this->_keyReport.keys[0] = kk;
-  this->_keyReport.keys[1] = 0x00;
-  this->_keyReport.keys[2] = 0x00;
-  this->_keyReport.keys[3] = 0x00;
-  this->_keyReport.keys[4] = 0x00;
-  this->_keyReport.keys[5] = 0x00;
+  this->_keyReport.keycode[0] = kk;
+  this->_keyReport.keycode[1] = 0x00;
+  this->_keyReport.keycode[2] = 0x00;
+  this->_keyReport.keycode[3] = 0x00;
+  this->_keyReport.keycode[4] = 0x00;
+  this->_keyReport.keycode[5] = 0x00;
 
   this->sendReport(&this->_keyReport);
   return 1;
@@ -369,8 +372,8 @@ size_t BleKeyboardJIS::release_raw(unsigned short k)
   // Test the key report to see if k is present.  Clear it if it exists.
   // Check all positions in case the key is present more than once (which it shouldn't be)
   for (i=0; i<6; i++) {
-    if (0 != kk && this->_keyReport.keys[i] == kk) {
-      this->_keyReport.keys[i] = 0x00;
+    if (0 != kk && this->_keyReport.keycode[i] == kk) {
+      this->_keyReport.keycode[i] = 0x00;
     }
   }
 
@@ -380,13 +383,13 @@ size_t BleKeyboardJIS::release_raw(unsigned short k)
 
 void BleKeyboardJIS::releaseAll(void)
 {
-  this->_keyReport.keys[0] = 0;
-  this->_keyReport.keys[1] = 0;
-  this->_keyReport.keys[2] = 0;
-  this->_keyReport.keys[3] = 0;
-  this->_keyReport.keys[4] = 0;
-  this->_keyReport.keys[5] = 0;
-  this->_keyReport.modifiers = 0;
+  this->_keyReport.keycode[0] = 0;
+  this->_keyReport.keycode[1] = 0;
+  this->_keyReport.keycode[2] = 0;
+  this->_keyReport.keycode[3] = 0;
+  this->_keyReport.keycode[4] = 0;
+  this->_keyReport.keycode[5] = 0;
+  this->_keyReport.modifier = 0;
   this->_mediaKeyReport[0] = 0;
   this->_mediaKeyReport[1] = 0;
   this->sendReport(&this->_keyReport);

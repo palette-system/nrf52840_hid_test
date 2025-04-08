@@ -24,12 +24,6 @@ AzKeyboard azkb = AzKeyboard();
 
 void setup() 
 {
-  /*
-  Serial.begin(9600);
-  while(!Serial){
-      delay(100);
-  }
-  */
     // 共通処理の初期化
     common_cls.common_start();
 
@@ -39,6 +33,9 @@ void setup()
     // キーボード初期処理
     azkb.begin_keyboard();
 
+    // キーの入力ピンの初期化
+    common_cls.pin_setup();
+
     // キーボードとして起動
     azkb.start_keyboard();
 }
@@ -46,12 +43,7 @@ void setup()
 
 void loop() 
 {
-
-  // blehid.keyPress(0x41);
-    // delay(50);
-    // blehid.keyRelease();
-    // delay(100000);
-    // blehid.sendTest();
-    delay(1000);
+    // キーボードモード用ループ
+    azkb.loop_exec();
 }
 

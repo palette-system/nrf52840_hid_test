@@ -669,7 +669,10 @@ void HidrawCallbackExec(int data_length) {
 		}
 
 		default: {
-			remap_buf[0] = 0xFF;
-		}
+			send_buf[0] = 0xFF;
+			for (i=1; i<32; i++) send_buf[i] = 0x00;
+            return;
+
+        }
 	}
 }

@@ -282,7 +282,7 @@ int AzCommon::split(String data, char delimiter, String *dst){
 }
 
 // レイヤー名、キー名から番号を抜き出す
-int split_num(char *c) {
+int split_num(const char *c) {
     // _の文字まで進める
     while (c[0] != 0x5F && c[0] != 0x00) {
         c++;
@@ -363,10 +363,13 @@ void AzCommon::load_setting_json() {
     } else {
         hid_pid = BLE_HID_PID;
     }
+
     // デフォルトのレイヤー番号設定
     default_layer_no = setting_obj["default_layer"].as<signed int>();
+
     // 今選択してるレイヤーをデフォルトに
     select_layer_no = default_layer_no;
+
     // hold 設定読み込み
     hold_type = 0;
     hold_time = 45;
@@ -755,9 +758,6 @@ void AzCommon::load_setting_json() {
         status_rgb_pin = -1;
     }
     
-    // 設定されているデフォルトレイヤー取得
-    default_layer_no = setting_obj["default_layer"].as<signed int>();
-
     // キーボードの言語取得
     if (setting_obj["keyboard_language"].is<int>()) {
         keyboard_language = setting_obj["keyboard_language"].as<signed int>();
@@ -823,8 +823,8 @@ void AzCommon::clear_keymap() {
 // JSONデータからキーマップの情報を読み込む
 void AzCommon::get_keymap(JsonObject setting_obj) {
     int i;
-    char lkey[16];
-    char kkey[16];
+    const char *lkey;
+    const char *kkey;
     uint16_t lnum, knum;
     JsonObject::iterator it_l;
     JsonObject::iterator it_k;
@@ -833,8 +833,9 @@ void AzCommon::get_keymap(JsonObject setting_obj) {
     layers = setting_obj["layers"].as<JsonObject>();
     setting_length = 0;
     for (it_l=layers.begin(); it_l!=layers.end(); ++it_l) {
-        if (!setting_obj["layers"][it_l->key().c_str()]["keys"].is<JsonArray>()) continue;
-        setting_length += setting_obj["layers"][it_l->key().c_str()]["keys"].size();
+        lkey = it_l->key().c_str();
+        if (!setting_obj["layers"][lkey]["keys"].is<JsonObject>()) continue;
+        setting_length += setting_obj["layers"][lkey]["keys"].size();
     }
     // Serial.printf("setting total %D\n", setting_length);
     // 設定数分メモリ確保
@@ -844,11 +845,11 @@ void AzCommon::get_keymap(JsonObject setting_obj) {
     // キー設定読み込み
     i = 0;
     for (it_l=layers.begin(); it_l!=layers.end(); ++it_l) {
-        sprintf(lkey, "%S", it_l->key().c_str());
+        lkey = it_l->key().c_str();
         lnum = split_num(lkey);
         keys = setting_obj["layers"][lkey]["keys"].as<JsonObject>();
         for (it_k=keys.begin(); it_k!=keys.end(); ++it_k) {
-            sprintf(kkey, "%S", it_k->key().c_str());
+            kkey = it_k->key().c_str();
             knum = split_num(kkey);
             // Serial.printf("get_keymap: %S %S [ %D %D ]\n", lkey, kkey, lnum, knum);
             // Serial.printf("mem: %D %D\n", heap_caps_get_free_size(MALLOC_CAP_32BIT), heap_caps_get_free_size(MALLOC_CAP_8BIT) );
@@ -983,6 +984,8 @@ int AzCommon::read_file(char *file_path, uint8_t *read_data) {
 
 // テキストをファイルに書き込む
 int AzCommon::write_file(char *file_path, uint8_t *write_data, int data_len) {
+    // ファイルが存在すればファイルを削除
+    if (InternalFS.exists(file_path)) remove_file(file_path);
     // 書込みモードでファイルオープン
     File fp = InternalFS.open(file_path, FILE_O_WRITE);
     // 書込み

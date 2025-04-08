@@ -102,7 +102,7 @@ typedef struct
 {
   uint8_t modifiers;
   uint8_t reserved;
-  uint8_t keys[6];
+  uint8_t keycode[6];
 } KeyReport;
 
 // メディアキー構造
