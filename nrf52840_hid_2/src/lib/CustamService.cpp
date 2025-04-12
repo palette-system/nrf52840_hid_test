@@ -71,15 +71,15 @@ void BLECustam::onCommandWritten(uint16_t conn_hdl, BLECharacteristic* character
 
   
 BLECustam::BLECustam(void) :
-  BLEService("0000ff01-0000-1000-8000-00805f9b34fb")
+  BLEService(CUSTAM_UUID_SERVICE)
 {
   
 }
 
 err_t BLECustam::begin(void)
 {
-    _characteristic_input = new BLECharacteristic("0000ff02-0000-1000-8000-00805f9b34fb", BLERead | BLENotify, 32, true); // UUID, パーミッション, データサイズ, データサイズ固定かどうか
-    _characteristic_output = new BLECharacteristic("0000ff03-0000-1000-8000-00805f9b34fb", BLEWrite, 32, true); // UUID, パーミッション, データサイズ, データサイズ固定かどうか
+    _characteristic_input = new BLECharacteristic(CUSTAM_UUID_INPUT, BLERead | BLENotify, 32, true); // UUID, パーミッション, データサイズ, データサイズ固定かどうか
+    _characteristic_output = new BLECharacteristic(CUSTAM_UUID_OUTPUT, BLEWrite, 32, true); // UUID, パーミッション, データサイズ, データサイズ固定かどうか
     write_index = 0;
   // Invoke base class begin()
   VERIFY_STATUS( BLEService::begin() );

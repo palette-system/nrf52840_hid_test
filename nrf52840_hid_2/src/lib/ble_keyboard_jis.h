@@ -1,7 +1,7 @@
 
 
 #include "ble_callbacks.h"
-// #include "az_common.h"
+#include "az_common.h"
 
 
 #include <bluefruit.h>
@@ -24,7 +24,6 @@ class BleKeyboardJIS
 
     /* メソッド */
     BleKeyboardJIS(void); // コンストラクタ
-    void set_report_map(uint8_t * report_map, unsigned short report_size);
     void begin(char *deviceName);
     void startAdv(void);
     static void set_keyboard_led(uint16_t conn_handle, uint8_t led_bitmap);

@@ -37,8 +37,8 @@ using namespace Adafruit_LittleFS_Namespace;
 #define AZ_NEO_KHZ 400
 
 // remap用 デフォルトの vid  pid
-#define BLE_HID_VID  0xE502
-#define BLE_HID_PID  0x0200
+#define BLE_HID_VID  0xE601
+#define BLE_HID_PID  0x0300
 
 // キースキャンループの待ち時間デフォルト(ms)
 #define LOOP_DELAY_DEFAULT  5
@@ -47,7 +47,7 @@ using namespace Adafruit_LittleFS_Namespace;
 #define FIRMWARE_VERSION   "000121"
 
 // EEPROMに保存しているデータのバージョン文字列
-#define EEP_DATA_VERSION    "AZC001"
+#define EEP_DATA_VERSION    "AZN001"
 
 // JSON のファイルパス
 #define SETTING_JSON_PATH "/setting.json"
@@ -302,6 +302,9 @@ extern int status_led_bit;
 // ステータスLED表示モード
 extern volatile int8_t status_led_mode;
 extern volatile int8_t status_led_mode_last;
+
+// LED情報 Kana (4) | Compose (3) | ScrollLock (2) | CapsLock (1) | Numlock (0)
+extern uint8_t led_map;
 
 // M5Stamp ステータス RGB_LED ピン、オブジェクト
 extern int8_t status_rgb_pin;

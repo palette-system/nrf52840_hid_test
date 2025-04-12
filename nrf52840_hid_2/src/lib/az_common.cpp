@@ -42,6 +42,9 @@ int status_led_bit = 0;
 volatile int8_t status_led_mode;
 volatile int8_t status_led_mode_last;
 
+// キーボード LED情報 Kana (4) | Compose (3) | ScrollLock (2) | CapsLock (1) | Numlock (0)
+uint8_t led_map;
+
 // M5Stamp ステータス RGB_LED ピン、オブジェクト
 int8_t status_rgb_pin;
 Adafruit_NeoPixel *status_rgb;

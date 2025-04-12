@@ -9,6 +9,12 @@
 
 #include "ble_callbacks.h"
 
+
+#define  CUSTAM_UUID_SERVICE  "0000ff26-0000-1000-8000-00805f9b34fb"
+#define  CUSTAM_UUID_INPUT  "0000ff27-0000-1000-8000-00805f9b34fb"
+#define  CUSTAM_UUID_OUTPUT  "0000ff28-0000-1000-8000-00805f9b34fb"
+
+
 extern BLECharacteristic *_characteristic_input;
 extern BLECharacteristic *_characteristic_output;
 

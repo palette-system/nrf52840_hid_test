@@ -8,17 +8,12 @@ BLEDis bledis;
 BLEHidAdafruit blehid;
 BLECustam blecus;
 
+
 // コンストラクタ
 BleKeyboardJIS::BleKeyboardJIS(void)
 {
 };
 
-
-// HID report map 設定
-// 例： bleKeyboard.set_report_map((uint8_t *)_hidReportDescriptorDefault, sizeof(_hidReportDescriptorDefault));
-void BleKeyboardJIS::set_report_map(uint8_t * report_map, unsigned short report_size)
-{
-};
 
 // BLEキーボードとして処理開始
 void BleKeyboardJIS::begin(char *deviceName)
@@ -28,8 +23,8 @@ void BleKeyboardJIS::begin(char *deviceName)
     Bluefruit.setName(deviceName);
   
     // Configure and Start Device Information Service
-    bledis.setManufacturer("palette_system");
-    bledis.setModel("nrfA");
+    bledis.setManufacturer("AZKEYBOARD");
+    bledis.setModel("AZK");
     uint8_t sig = 0x02;
     uint16_t hid_vid = 0xe502; 
     uint16_t hid_pid = 0x0200; 
@@ -82,7 +77,7 @@ void BleKeyboardJIS::startAdv(void)
   
   // Include BLE HID service
   Bluefruit.Advertising.addService(blehid);
-  // Bluefruit.Advertising.addService(blecus);
+  Bluefruit.Advertising.addService(blecus);
 
   // There is enough room for the dev name in the advertising packet
   Bluefruit.Advertising.addName();
@@ -111,17 +106,7 @@ void BleKeyboardJIS::startAdv(void)
  */
 void BleKeyboardJIS::set_keyboard_led(uint16_t conn_handle, uint8_t led_bitmap)
 {
-  (void) conn_handle;
-  
-  // light up Red Led if any bits is set
-  if ( led_bitmap & 0x02 )
-  {
-    ledOn( LED_RED );
-  }
-  else
-  {
-    ledOff( LED_RED );
-  }
+  led_map = led_bitmap;
 }
 
 
