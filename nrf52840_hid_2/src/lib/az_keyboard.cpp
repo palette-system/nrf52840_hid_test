@@ -665,14 +665,20 @@ void AzKeyboard::power_sleep_loop() {
     if (power_pin < 0) return;
 
     if (digitalRead(power_pin)) {
-        // 電源スイッチがOFFならばスリープに入る
-       delay(100);
-       while (digitalRead(power_pin)) {
-        delay(1000);
-       }
-       common_cls.restart(); // 再起動
+        // 参考 
+        // https://qiita.com/nanbuwks/items/c2f098793899001b5087
+        // https://qiita.com/nanbuwks/items/36c32989543399f3aa62
+        // プルアップ
+        nrf_gpio_cfg_input(g_ADigitalPinMap[power_pin], NRF_GPIO_PIN_PULLUP);
+        // nrf_gpio_cfg_input(NRF_GPIO_PIN_MAP(0,18),NRF_GPIO_PIN_PULLUP);
+        // LOWでスリープ解除
+        nrf_gpio_cfg_sense_set(g_ADigitalPinMap[power_pin], NRF_GPIO_PIN_SENSE_LOW);
+        // スリープ開始
+        sd_power_system_off();
+        while (true) {
+            delay(1000);
+        }
     }
-
 }
 
 // 定期実行の処理
@@ -731,6 +737,6 @@ void AzKeyboard::loop_exec(void) {
         common_cls.restart(); // 再起動
     }
 
-    delay(5);
+    delay(loop_delay);
 
 }

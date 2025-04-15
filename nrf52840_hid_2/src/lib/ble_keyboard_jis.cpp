@@ -26,9 +26,9 @@ void BleKeyboardJIS::begin(char *deviceName)
     bledis.setManufacturer("AZKEYBOARD");
     bledis.setModel("AZK");
     uint8_t sig = 0x02;
-    uint16_t hid_vid = 0xe502; 
-    uint16_t hid_pid = 0x0200; 
-    uint16_t version = 0x0001; 
+    uint16_t hid_vid = 0xe502;
+    uint16_t hid_pid = 0x0200;
+    uint16_t version = 0x0001;
     uint8_t pnp[] = {
       sig,
       (uint8_t) (hid_vid >> 8), (uint8_t) hid_vid,
@@ -239,6 +239,7 @@ unsigned short BleKeyboardJIS::modifiers_media_release(unsigned short k) {
 
 void BleKeyboardJIS::sendReport(hid_keyboard_report_t* keys)
 {
+    this->setConnInterval(0); // 消費電力モード解除
     blehid.keyboardReport(keys);
     // this->pInputCharacteristic->setValue((uint8_t*)keys, sizeof(KeyReport));
     // this->pInputCharacteristic->notify();
@@ -246,6 +247,7 @@ void BleKeyboardJIS::sendReport(hid_keyboard_report_t* keys)
 
 void BleKeyboardJIS::sendReport(MediaKeyReport* keys)
 {
+  this->setConnInterval(0); // 消費電力モード解除
   if (this->isConnected())
   {
     // this->pInputCharacteristic2->setValue((uint8_t*)keys, sizeof(MediaKeyReport));
@@ -280,7 +282,7 @@ void BleKeyboardJIS::mouse_release(uint8_t b)
 
 void BleKeyboardJIS::mouse_move(signed char x, signed char y, signed char wheel, signed char hWheel)
 {
-    if (this->isConnected()) {
+  if (this->isConnected()) {
         if (x != 0 || y != 0 || wheel != 0 || hWheel != 0 || this->_MouseButtons != 0) {
             this->setConnInterval(0); // 消費電力モード解除
         }
@@ -302,7 +304,6 @@ size_t BleKeyboardJIS::press_raw(unsigned short k)
 {
   uint8_t i;
   unsigned short kk;
-  this->setConnInterval(0); // 消費電力モード解除
   // メディアキー
   if (modifiers_media_press(k)) return 1;
   kk = this->modifiers_press(k);
@@ -328,7 +329,6 @@ size_t BleKeyboardJIS::press_set(uint8_t k)
 {
   uint8_t i;
   unsigned short kk;
-  this->setConnInterval(0); // 消費電力モード解除
   kk = _asciimap[k];
   if (!kk) {
     return 0;
@@ -404,9 +404,11 @@ void BleKeyboardJIS::setConnInterval(int interval_type)
   if (!this->isConnected()) return; // 接続していなければ何もしない
   if (interval_type == 1) {
     // 省電力中
+    loop_delay = 100;
     // this->pServer->updateConnParams(hid_conn_handle, hid_interval_saving - 2, hid_interval_saving + 2, 0, 200);
   } else {
     // 通常
+    loop_delay = loop_delay_default;
     // this->pServer->updateConnParams(hid_conn_handle, hid_interval_normal - 2, hid_interval_normal + 2, 0, 200);
   }
     

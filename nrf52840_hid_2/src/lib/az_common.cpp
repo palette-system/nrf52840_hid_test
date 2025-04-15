@@ -75,6 +75,7 @@ int key_input_length;
 
 // キースキャンループの待ち時間
 short loop_delay;
+short loop_delay_default;
 
 // キーボードの名前
 char keyboard_name_str[32];
@@ -347,10 +348,11 @@ void AzCommon::load_setting_json() {
 
     // キースキャンループの待ち時間
     if (setting_obj["loop_delay"].is<int>()) {
-        loop_delay = setting_obj["loop_delay"].as<signed int>();
+        loop_delay_default = setting_obj["loop_delay"].as<signed int>();
     } else {
-        loop_delay = LOOP_DELAY_DEFAULT;
+        loop_delay_default = LOOP_DELAY_DEFAULT;
     }
+    loop_delay = loop_delay_default;
 
     // HID 設定
     String hidstr;

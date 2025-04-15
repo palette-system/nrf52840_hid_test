@@ -32,6 +32,10 @@ void setup()
 
     // キーボード初期処理
     azkb.begin_keyboard();
+    // 電源ピンの設定
+    if (power_pin >= 0) {
+        pinMode(power_pin, INPUT_PULLUP); // ピンの設定
+    }
 
     // キーの入力ピンの初期化
     common_cls.pin_setup();

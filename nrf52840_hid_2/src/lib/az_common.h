@@ -303,7 +303,7 @@ extern int status_led_bit;
 extern volatile int8_t status_led_mode;
 extern volatile int8_t status_led_mode_last;
 
-// LED情報 Kana (4) | Compose (3) | ScrollLock (2) | CapsLock (1) | Numlock (0)
+// キーボード LED情報 Kana (4) | Compose (3) | ScrollLock (2) | CapsLock (1) | Numlock (0)
 extern uint8_t led_map;
 
 // M5Stamp ステータス RGB_LED ピン、オブジェクト
@@ -375,6 +375,7 @@ extern int key_input_length;
 
 // キースキャンループの待ち時間
 extern short loop_delay;
+extern short loop_delay_default;
 
 // キーボードの名前
 extern char keyboard_name_str[32];
