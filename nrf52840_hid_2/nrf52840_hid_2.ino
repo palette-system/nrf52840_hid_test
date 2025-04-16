@@ -37,6 +37,13 @@ void setup()
         pinMode(power_pin, INPUT_PULLUP); // ピンの設定
     }
 
+    // ステータス表示用のLED初期化
+    if (status_pin >= 0) {
+        pinMode(status_pin, OUTPUT);
+        digitalWrite(status_pin, 1);
+        status_led_mode = 0;
+    }
+
     // キーの入力ピンの初期化
     common_cls.pin_setup();
 

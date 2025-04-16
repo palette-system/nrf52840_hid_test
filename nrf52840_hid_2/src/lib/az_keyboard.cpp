@@ -30,9 +30,6 @@ void AzKeyboard::begin_keyboard() {
 
 // キーボードとして処理開始
 void AzKeyboard::start_keyboard() {
-    // ステータスLED wifi接続中
-    status_led_mode = 4;
-    
     // ステータスLED点灯
     status_led_mode = 1;
 
