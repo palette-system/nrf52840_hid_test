@@ -34,6 +34,7 @@ int power_pin = -1;
 
 // ステータス表示用ピン番号
 int status_pin = -1;
+short status_index = 0;
 
 // ステータスLED今0-9
 int status_led_bit = 0;

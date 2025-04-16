@@ -1,7 +1,7 @@
 #ifndef AzKeyboard_h
 #define AzKeyboard_h
 
-// #include "az_common.h"
+#include "az_common.h"
 
 
 // クラスの定義
@@ -25,6 +25,7 @@ class AzKeyboard
         void power_saving_loop(); // 省電力モード用ループ
         void press_data_clear(); // キーを押したままリストをクリア
         void power_sleep_loop(); // 電源管理用ループ
+        void status_led_loop(); // ステータスLED更新ループ
     
     private:
 };

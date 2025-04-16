@@ -32,6 +32,7 @@ void AzKeyboard::begin_keyboard() {
 void AzKeyboard::start_keyboard() {
     // ステータスLED点灯
     status_led_mode = 1;
+    status_index = 0;
 
     // レイヤーをデフォルトに
     common_cls.layer_set(default_layer_no);
@@ -126,8 +127,8 @@ void AzKeyboard::key_repeat_exec() {
         if (press_key_list[i].action_type == 1 && 
             press_key_list[i].repeat_interval >= 0 &&
             press_key_list[i].repeat_interval <= 50) { // 通常キー入力で連打設定がある
+            k = press_key_list[i].key_id;
             if (press_key_list[i].repeat_index >= press_key_list[i].repeat_interval) {
-                k = press_key_list[i].key_id;
                 if (k & MOUSE_CODE) {
                     // マウスボタンだった場合
                     bleKeyboard.mouse_press(k - MOUSE_CODE); // マウスボタンを押す
@@ -667,9 +668,13 @@ void AzKeyboard::power_sleep_loop() {
         // https://qiita.com/nanbuwks/items/36c32989543399f3aa62
         // プルアップ
         nrf_gpio_cfg_input(g_ADigitalPinMap[power_pin], NRF_GPIO_PIN_PULLUP);
-        // nrf_gpio_cfg_input(NRF_GPIO_PIN_MAP(0,18),NRF_GPIO_PIN_PULLUP);
         // LOWでスリープ解除
         nrf_gpio_cfg_sense_set(g_ADigitalPinMap[power_pin], NRF_GPIO_PIN_SENSE_LOW);
+        // ステータスLED消す
+        digitalWrite(11, 1); // XIAO LED RED
+        digitalWrite(12, 1); // XIAO LED BLUE
+        digitalWrite(13, 1); // XIAO LED GREEN
+        if (status_pin >= 0) digitalWrite(status_pin, 1);
         // スリープ開始
         sd_power_system_off();
         while (true) {
@@ -677,6 +682,21 @@ void AzKeyboard::power_sleep_loop() {
         }
     }
 }
+
+// ステータスLED更新ループ
+void AzKeyboard::status_led_loop() {
+    // ステータスLED
+    if (status_pin < 0) return;
+    status_index++;
+    if ((status_index * loop_delay) < 500) return;
+    status_index = 0;
+    if (bleKeyboard.isConnected()) {
+        digitalWrite(status_pin, 0);
+    } else {
+        digitalWrite(status_pin, 1);
+    }
+}
+
 
 // 定期実行の処理
 void AzKeyboard::loop_exec(void) {
@@ -714,6 +734,9 @@ void AzKeyboard::loop_exec(void) {
 
     // 電源スイッチ用ループ処理
     power_sleep_loop();
+
+    // ステータスLED更新ループ
+    status_led_loop();
 
     // eztoolツールI2Cオプション設定中はループ処理をしない(I2Cの読み込みが走っちゃうと落ちるから)
     while (aztool_mode_flag == 1) {

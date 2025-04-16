@@ -113,7 +113,7 @@ void BleKeyboardJIS::set_keyboard_led(uint16_t conn_handle, uint8_t led_bitmap)
 // 接続中かどうかを返す
 bool BleKeyboardJIS::isConnected(void)
 {
-    return true;
+    return (Bluefruit.connected() > 0);
 };
 
 

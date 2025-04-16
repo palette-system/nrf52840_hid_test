@@ -295,6 +295,7 @@ extern int power_pin;
 
 // ステータスピン番号
 extern int status_pin;
+extern short status_index;
 
 // ステータスLED今0-9
 extern int status_led_bit;
