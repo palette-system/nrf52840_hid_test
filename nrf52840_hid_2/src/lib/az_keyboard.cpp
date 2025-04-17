@@ -4,6 +4,9 @@
 // #include "src/lib/ankey.h"
 // #include "src/lib/dakey.h"
 
+#include <Adafruit_SPIFlash.h>
+Adafruit_FlashTransport_QSPI flashTransport;
+Adafruit_SPIFlash flash(&flashTransport);
 
 // BLEキーボード
 #include "ble_keyboard_jis.h"
@@ -675,6 +678,13 @@ void AzKeyboard::power_sleep_loop() {
         digitalWrite(12, 1); // XIAO LED BLUE
         digitalWrite(13, 1); // XIAO LED GREEN
         if (status_pin >= 0) digitalWrite(status_pin, 1);
+        
+        // オンボードQSPI Flash MemoryをDeep Power-downモードにして省電力化する
+        flashTransport.begin();
+        flashTransport.runCommand(0xB9);
+        delayMicroseconds(5);
+        flashTransport.end();
+
         // スリープ開始
         sd_power_system_off();
         while (true) {
