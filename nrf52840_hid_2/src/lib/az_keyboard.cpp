@@ -674,9 +674,9 @@ void AzKeyboard::power_sleep_loop() {
         // LOWでスリープ解除
         nrf_gpio_cfg_sense_set(g_ADigitalPinMap[power_pin], NRF_GPIO_PIN_SENSE_LOW);
         // ステータスLED消す
-        digitalWrite(11, 1); // XIAO LED RED
-        digitalWrite(12, 1); // XIAO LED BLUE
-        digitalWrite(13, 1); // XIAO LED GREEN
+        digitalWrite(LED_RED, 1); // XIAO LED RED
+        digitalWrite(LED_BLUE, 1); // XIAO LED BLUE
+        digitalWrite(LED_GREEN, 1); // XIAO LED GREEN
         if (status_pin >= 0) digitalWrite(status_pin, 1);
         
         // オンボードQSPI Flash MemoryをDeep Power-downモードにして省電力化する

@@ -224,6 +224,7 @@ void AzCommon::common_start() {
     randomSeed(millis());
     // ファイルシステム初期化
     InternalFS.begin();
+    // InternalFS.format();
     // 押している最中のキーデータ初期化
     int i;
     for (i=0; i<PRESS_KEY_MAX; i++) {

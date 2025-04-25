@@ -88,7 +88,7 @@ void startAdv(void)
   
   // Include BLE HID service
   Bluefruit.Advertising.addService(blehid);
-  // Bluefruit.Advertising.addService(blecus);
+  Bluefruit.Advertising.addService(blecus);
 
   // There is enough room for the dev name in the advertising packet
   Bluefruit.Advertising.addName();

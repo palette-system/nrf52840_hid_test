@@ -2,7 +2,7 @@
     "default": 1,
     "vendorId": "0xe622",
     "productId": "0x0533",
-    "status_pin": -1,
+    "status_pin": 13,
     "led_num": [],
     "key_matrix": [],
     "keyboard_language": 0,
