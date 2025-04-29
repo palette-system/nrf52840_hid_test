@@ -680,10 +680,10 @@ void AzKeyboard::power_sleep_loop() {
         if (status_pin >= 0) digitalWrite(status_pin, 1);
         
         // オンボードQSPI Flash MemoryをDeep Power-downモードにして省電力化する
-        flashTransport.begin();
-        flashTransport.runCommand(0xB9);
-        delayMicroseconds(5);
-        flashTransport.end();
+        // flashTransport.begin();
+        // flashTransport.runCommand(0xB9);
+        // delayMicroseconds(5);
+        // flashTransport.end();
 
         // スリープ開始
         sd_power_system_off();
