@@ -86,8 +86,7 @@ extern uint8_t remap_change_flag;
 
 
 #define JIS_SHIFT 0x1000
-#define MOUSE_CODE 0x2000
-// #define MOUSE_CODE 0x4000
+#define MOUSE_CODE 0x4000
 
 // マウスボタン
 /*

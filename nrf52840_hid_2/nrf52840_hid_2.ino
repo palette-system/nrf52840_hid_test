@@ -32,6 +32,11 @@ void setup()
 
     // キーボード初期処理
     azkb.begin_keyboard();
+
+    // バッテリチャージを 50mA -> 100mA に設定
+    pinMode(PIN_CHARGING_CURRENT, OUTPUT);
+    digitalWrite(PIN_CHARGING_CURRENT, LOW);
+
     // 電源ピンの設定
     if (power_pin >= 0) {
         pinMode(power_pin, INPUT_PULLUP); // ピンの設定
